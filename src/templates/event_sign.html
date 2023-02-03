@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<title>Sign Nostr Event</title>
+
+<form method="post">
+    Nostr private key (nsec): <input type="password" name="nsec"><br/>
+    <br/>
+    Nostr event json:<br/>
+    <textarea cols="80", rows="10" name="event_json"></textarea><br/>
+    <br/>
+    <input type="submit" value="Sign event" >
+</form>
+
+{% if pk %}
+    <div>{{ pk.public_key.bech32()[:14] }}</div>
+{% endif %}
+
+
+{% if event %}
+    <div>{{ event.to_message() }}</div>
+    <br/>
+    <br/>
+    Signature:<br/>
+    {{ event.signature }}
+{% endif %}
+
+</html>

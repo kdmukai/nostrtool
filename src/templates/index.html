@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+    <head>
+        <title>NostrTool</title>
+        <script src="/static/nostr_tool.js"></script>
+        <link rel="stylesheet" href="/static/styles.css">
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+        <style>
+
+        </style>
+    </head>
+    <body>
+        <h1>NostrTool</h1>
+
+
+        <div id="section_pk" class="section">
+            <div class="section_content">
+
+                <div id="subsection_pk_creation" class="subsection">
+                    Create or load a Nostr key:
+                    <div>
+                        <div class="float_options">
+                            <input onclick="createNewPK('raw');" type="button" value="Generate new key" ><br/>
+                            <input onclick="createNewPK('bip39_12');" type="button" value="From random BIP-39 12-word mnemonic" ><br/>
+                            <input onclick="createNewPK('bip39_24');" type="button" value="From random BIP-39 24-word mnemonic" ><br/>
+                        </div>
+                        <div class="float_options">
+                            <input onclick="prepareLoadPK('nsec');" type="button" value="Load an existing key from nsec" ><br/>
+                            <input onclick="prepareLoadPK('hex');" type="button" value="Load an existing key from privkey hex" ><br/>
+                            <input onclick="prepareLoadPK('bip39');" type="button" value="Load an existing key from BIP-39 mnemonic" ><br/>
+                        </div>
+                        <div class="clear_both"></div>
+                    </div>
+
+                    <div id="input_nsec_container" class="start_hidden">
+                        Paste nsec:<br/>
+                        <input id="input_nsec" type="text"><br/>
+                        <input onclick="loadPK('nsec', 'input_nsec')" type="button" value="Load">
+                    </div>
+
+                    <div id="input_hex_container" class="start_hidden">
+                        Paste privkey hex:<br/>
+                        <input id="input_hex" type="text"><br/>
+                        <input onclick="loadPK('hex', 'input_hex')" type="button" value="Load">
+                    </div>
+
+                    <div id="input_mnemonic_container" class="start_hidden">
+                        Paste 12-word or 24-word mnemonic (separated w/spaces or commas):<br/>
+                        <input id="input_mnemonic" type="text"><br/>
+                        <input onclick="loadPK('bip39', 'input_mnemonic')" type="button" value="Load">
+                    </div>
+                </div>
+
+
+                <div id="subsection_nsec" class="subsection">
+                    <div id="bip39_mnemonic_container" class="hideable_container start_hidden">
+                        BIP-39 mnemonic:<br/>
+                        <input id="bip39_mnemonic" type="text" readonly><br/>
+                        <br/>
+                    </div>
+
+                    Nostr private key (nsec):<br/>
+                    <input id="pk_nsec" class="danger" type="text" readonly><br/>
+                    <br/>
+
+                    Nostr private key (hex):<br/>
+                    <input id="pk_hex" class="danger" type="text" readonly><br/>
+                    <br/>
+
+                    Nostr public key (npub):<br/>
+                    <input id="pubkey_npub" type="text" readonly><br/>
+                    <br/>
+
+                    Nostr public key (hex):<br/>
+                    <input id="pubkey_hex" type="text" readonly>
+                    <br/>
+                </div>
+            
+            </div>
+        </div>
+
+
+
+        <div id="section_nip26" class="section">
+            <div id="header_nip26" class="section_header">NIP-26 Delegation</div>
+
+            <div id="content_nip26" class="section_content start_hidden">
+                <div>
+                    <div class="float_options">
+                        <input onclick="createNip26();" type="button" value="Create a new delegation" ><br/>
+                    </div>
+                    <div class="float_options">
+                        <input onclick="prepareLoadNip26();" type="button" value="Load an existing delegation" ><br/>
+                    </div>
+                    <div class="clear_both"></div>
+                </div>
+
+                <div id="input_nsec_container" class="start_hidden">
+                    <textarea cols="80" rows="10"></textarea><br/>
+                    <input onclick="signNip26()" type="button" value="Sign delegation">
+                </div>
+
+                <div class="subsection">
+                    Delegation token:<br/>
+                    <input id="nip26_token" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Signature:<br/>
+                    <input id="nip26_signature" type="text" readonly>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="section_event" class="section">
+            <div id="header_event" class="section_header">Events</div>
+
+            <div id="content_event" class="section_content start_hidden">
+
+                <div>
+                    <input onclick="showEvent('event_text_note_container')" type="button" class="float_options" value="Text note">
+                    <input onclick="" type="button" class="float_options" value="NIP-26 delegated text note">
+                    <input onclick="showEvent('event_raw_json_container')" type="button" class="float_options" value="Raw event json">
+                    <div class="clear_both"></div>
+                </div>
+
+                <div id="event_text_note_container" class="start_hidden">
+                    Text note:<br/>
+                    <textarea id="event_text_note" cols="60" rows="5"></textarea><br/>
+                    <br/>
+                    <input onclick="eventSign('text_note', 'event_text_note');" type="button" value="Sign event" >
+                </div>
+
+                <div id="event_raw_json_container" class="start_hidden">
+                    Nostr event json:<br/>
+                    <textarea id="event_raw_json" cols="80" rows="10"></textarea><br/>
+                    <input onclick="eventSign('raw_json', 'event_raw_json');" type="button" value="Sign event" >
+                </div>
+
+                <div class="subsection">
+                    Event json:<br/>
+                    <textarea id="event_json" cols="80" rows="10" readonly></textarea><br/>
+                </div>
+
+                <div class="subsection">
+                    Signature:<br/>
+                    <input id="event_signature" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Publish:<br/>
+                    (experimental)<br/>
+                    <input onclick="eventPublish();" type="button" value="Publish">
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="section_relays" class="section">
+            <div id="header_relays" class="section_header">Relays</div>
+
+            <div class="section_content start_hidden">
+                <textarea id="relays_list" rows="12" cols="80">
+nos.lol
+relay.nostr.info
+relay.snort.social
+nostr-pub.wellorder.net
+nostr.oxtr.dev
+brb.io
+nostr-pub.semisol.dev
+nostr.zebedee.cloud</textarea>
+            </div>
+        </div>
+
+
+
+
+        <div id="section_event" class="section">
+            <div id="header_tips" class="section_header">⚡⚡ LN Tips ⚡⚡</div>
+
+            <div id="content_tips" align="center" class="section_content start_hidden">
+                <img src="/static/lnurl.png" width="50%">
+
+                <input type="text" readonly value="LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2">
+            </div>            
+        </div>
+    </body>
+</html>
