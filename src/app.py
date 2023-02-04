@@ -2,7 +2,7 @@ import json
 import ssl
 import time
 from binascii import unhexlify
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory
 from nostr.event import Event
 from nostr.key import Bip39PrivateKey, PrivateKey
 from nostr.relay_manager import RelayManager
@@ -15,6 +15,13 @@ app = Flask(__name__)
 @app.route("/")
 def hello_world():
     return render_template("index.html")
+
+
+
+# Force Flask to serve static assets to simplify deploy
+@app.route("/assets/<path:path>")
+def nostr_tool_js(path):
+    return send_from_directory("assets", path)
 
 
 
