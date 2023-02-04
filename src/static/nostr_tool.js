@@ -107,6 +107,56 @@ function loadPK(keytype, targetId) {
 }
 
 
+var curNip26Slide = null;
+function prepareLoadNip26(container_id) {
+    if (curNip26Slide !== null && curNip26Slide.id != container_id) {
+        slideUp(curNip26Slide);
+        curNip26Slide = null;
+    }
+
+    target = document.getElementById(container_id);
+    if(curNip26Slide === null) {
+        slideDown(target);
+        curNip26Slide = target;
+    }
+}
+
+
+
+function nip26Sign(dataSource) {
+    let data = new FormData();
+    let delegation_token = document.getElementById(dataSource).value;
+    data.append("delegation_token", delegation_token);
+    data.append("pk_hex", document.getElementById("pk_hex").value);
+
+    fetch(
+        "/nip26/sign",
+        {
+            method: 'POST',
+            body: data
+        }
+    )
+    .then(response => response.json())
+    .then(result => {
+        document.getElementById("nip26_token").value = delegation_token;
+        document.getElementById("nip26_delegator_npub").value = result.delegator_npub;
+        document.getElementById("nip26_delegator_hex").value = result.delegator_hex;
+        document.getElementById("nip26_delegatee_npub").value = result.delegatee_npub;
+        document.getElementById("nip26_delegatee_hex").value = result.delegatee_hex;
+        document.getElementById("nip26_kinds").value = result.event_kinds;
+        document.getElementById("nip26_valid_from").value = new Date(result.valid_from * 1000).toISOString();
+        document.getElementById("nip26_valid_until").value = new Date(result.valid_until * 1000).toISOString();
+        document.getElementById("nip26_tag").value = result.delegation_tag;
+        document.getElementById("nip26_signature").value = result.signature;
+    })
+}
+
+
+
+
+/***************************************************************
+ *      EVENTS
+ ***************************************************************/
 var curEventSlide = null;
 function showEvent(container_id) {
     if (curEventSlide !== null && curEventSlide.id != container_id) {

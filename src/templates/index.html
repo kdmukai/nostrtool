@@ -100,22 +100,56 @@
             <div id="content_nip26" class="section_content start_hidden">
                 <div>
                     <div class="float_options">
-                        <input onclick="createNip26();" type="button" value="Create a new delegation" ><br/>
+                        <input onclick="prepareLoadNip26();" type="button" value="Create a new delegation" ><br/>
                     </div>
                     <div class="float_options">
-                        <input onclick="prepareLoadNip26();" type="button" value="Load an existing delegation" ><br/>
+                        <input onclick="prepareLoadNip26('nip26_raw_delegation_token_container');" type="button" value="Load an existing delegation" ><br/>
                     </div>
                     <div class="clear_both"></div>
                 </div>
 
-                <div id="input_nsec_container" class="start_hidden">
-                    <textarea cols="80" rows="10"></textarea><br/>
-                    <input onclick="signNip26()" type="button" value="Sign delegation">
+                <div id="nip26_raw_delegation_token_container" class="start_hidden">
+                    Delegation token (see: <a href="https://github.com/nostr-protocol/nips/blob/master/26.md#delegation-token" target="_new">NIP-26</a>):<br/>
+                    <input id="nip26_raw_delegation_token" type="text"><br/>
+                    <input onclick="nip26Sign('nip26_raw_delegation_token');" type="button" value="Sign delegation" >
                 </div>
+
 
                 <div class="subsection">
                     Delegation token:<br/>
                     <input id="nip26_token" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Delegator (the main identity) npub/hex:<br/>
+                    <input id="nip26_delegator_npub" type="text" readonly><br/>
+                    <input id="nip26_delegator_hex" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Delegatee (can sign on behalf of the main identity) npub/hex:<br/>
+                    <input id="nip26_delegatee_npub" type="text" readonly><br/>
+                    <input id="nip26_delegatee_hex" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Allowed event kinds:<br/>
+                    <textarea id="nip26_kinds" cols="80" rows="6" readonly></textarea>
+                </div>
+
+                <div class="subsection">
+                    Valid from:<br/>
+                    <input id="nip26_valid_from" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Valid until:<br/>
+                    <input id="nip26_valid_until" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Delegation tag:<br/>
+                    <textarea id="nip26_tag" cols="80" rows="6" readonly></textarea>
                 </div>
 
                 <div class="subsection">
@@ -197,7 +231,7 @@ nostr.zebedee.cloud</textarea>
             <div id="content_tips" align="center" class="section_content start_hidden">
                 <img src="/static/lnurl.png" width="50%">
                 <br/>
-                <input type="button" onclick="location.href='lighting:LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2';" value="⚡ tip via LNURL ⚡"><br/>
+                <input type="button" onclick="location.href='lightning:LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2';" value="⚡ tip via LNURL ⚡"><br/>
                 <br/>
 
                 <input type="text" readonly value="LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2">

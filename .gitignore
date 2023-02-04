@@ -131,3 +131,4 @@ dmypy.json
 zappa_settings.json
 src/nostr
 python-nostr/
+.vscode/settings.json

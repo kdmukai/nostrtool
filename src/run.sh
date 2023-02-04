@@ -1,2 +1,2 @@
 #!/bin/bash
-flask --app nostr_tool --debug run
+flask --debug run --host 0.0.0.0 --port 1237

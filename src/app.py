@@ -2,9 +2,10 @@ import json
 import ssl
 import time
 from binascii import unhexlify
-from flask import Flask, request, render_template, send_from_directory
+from flask import Flask, request, render_template
+from nostr.delegation import Delegation
 from nostr.event import Event
-from nostr.key import Bip39PrivateKey, PrivateKey
+from nostr.key import Bip39PrivateKey, PrivateKey, PublicKey
 from nostr.relay_manager import RelayManager
 
 
@@ -58,6 +59,33 @@ def load_pk():
         pk_nsec=pk.bech32(),
         pubkey_hex=pk.public_key.hex(),
         pubkey_npub=pk.public_key.bech32(),
+    )
+
+
+
+@app.route("/nip26/sign", methods=['POST'])
+def nip26_sign_delegation_token():
+    pk = None
+    pk = PrivateKey(unhexlify(request.form["pk_hex"]))
+    delegation_token = request.form["delegation_token"]
+    try:
+        delegation = Delegation.from_token(delegator_pubkey=pk.public_key.hex(), delegation_token=delegation_token)
+        delegatee_pubkey = PublicKey(unhexlify(delegation.delegatee_pubkey))
+    except Exception as e:
+        print(e)
+
+    pk.sign_delegation(delegation)
+
+    return dict(
+        delegator_npub=pk.public_key.bech32(),
+        delegator_hex=pk.public_key.hex(),
+        delegatee_npub=delegatee_pubkey.bech32(),
+        delegatee_hex=delegatee_pubkey.hex(),
+        event_kinds=delegation.event_kinds,
+        valid_from=delegation.valid_from,
+        valid_until=delegation.valid_until,
+        signature=delegation.signature,
+        delegation_tag=delegation.get_tag(),
     )
 
 
