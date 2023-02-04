@@ -8,7 +8,7 @@ from nostr.key import Bip39PrivateKey, PrivateKey
 from nostr.relay_manager import RelayManager
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 
 
 
@@ -18,10 +18,10 @@ def hello_world():
 
 
 
-# Force Flask to serve static assets to simplify deploy
-@app.route("/assets/<path:path>")
-def nostr_tool_js(path):
-    return send_from_directory("assets", path)
+# # Force Flask to serve static assets to simplify deploy
+# @app.route("/assets/<path:path>")
+# def nostr_tool_js(path):
+#     return send_from_directory("assets", path)
 
 
 
