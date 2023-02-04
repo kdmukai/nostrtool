@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>NostrTool</title>
-        <script src="/assets/nostr_tool.js"></script>
-        <link rel="stylesheet" href="/assets/styles.css">
+        <!-- <script src="/assets/nostr_tool.js"></script>
+        <link rel="stylesheet" href="/assets/styles.css"> -->
 
         <!-- Google Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
         <style>
-
+            {% include "styles.css" %}
         </style>
     </head>
     <body>
@@ -192,5 +192,9 @@ nostr.zebedee.cloud</textarea>
                 <input type="text" readonly value="LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2">
             </div>            
         </div>
+
+<script>
+    {% include 'nostr_tool.js' %}
+</script>
     </body>
 </html>
