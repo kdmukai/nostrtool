@@ -82,3 +82,10 @@ textarea {
 .clear_both {
     clear: both;
 }
+
+
+.footer {
+    margin-top: 3em;
+    border-top: 1px solid #ccc;
+    font-size: 0.85em;
+}

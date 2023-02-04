@@ -1,1 +1,3 @@
-# nip26_util
+# NostrTool
+
+nostrtool.com
