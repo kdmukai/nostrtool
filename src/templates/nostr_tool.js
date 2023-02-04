@@ -34,7 +34,7 @@ function createNewPK(keytype) {
     }
 
     fetch(
-        "/key/create",
+        "key/create",
         {
             method: 'POST',
             body: data
@@ -90,7 +90,7 @@ function loadPK(keytype, targetId) {
     data.append("privkey_data", target.value)
 
     fetch(
-        "/key/load",
+        "key/load",
         {
             method: 'POST',
             body: data
@@ -129,7 +129,7 @@ function eventSign(type, dataSource) {
     data.append("pk_hex", document.getElementById("pk_hex").value);
 
     fetch(
-        "/event/sign",
+        "event/sign",
         {
             method: 'POST',
             body: data
@@ -150,7 +150,7 @@ function eventPublish() {
     data.append("relays", document.getElementById("relays_list").value);
 
     fetch(
-        "/event/publish",
+        "event/publish",
         {
             method: 'POST',
             body: data
