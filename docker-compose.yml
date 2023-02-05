@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+
+    # Must use amd64 when building for Zappa
+    platform: linux/amd64
+    # Keep the container running with a trivial ongoing task
+    # command: bash -c "tail -F /dev/null"
+    # Or spin the webserver up when the container is run
+    command: /srv/.env/bin/flask run --host 0.0.0.0 --port 1237
+    ports:
+      # Expose the container's webserver port to the same port on localhost
+      - 127.0.0.1:1237:1237
