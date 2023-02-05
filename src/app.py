@@ -110,7 +110,11 @@ def event_sign_raw_json():
 
     pk.sign_event(event)
 
-    return dict(signature=event.signature, event_json=json.dumps(event.to_json(), indent=2))
+    return dict(
+        signature=event.signature,
+        event_json=json.dumps(event.to_json(), indent=2),
+        note_id=event.note_id,
+    )
 
 
 

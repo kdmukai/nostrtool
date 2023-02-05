@@ -83,7 +83,7 @@ function prepareLoadPK(keytype) {
 
 
 function loadPK(keytype, targetId) {
-    target = document.getElementById(targetId);
+    let target = document.getElementById(targetId);
 
     let data = new FormData();
     data.append("type", keytype);
@@ -188,6 +188,7 @@ function eventSign(type, dataSource) {
     .then(response => response.json())
     .then(result => {
         document.getElementById("event_json").value = result.event_json;
+        document.getElementById("event_note_id").value = result.note_id;
         document.getElementById("event_signature").value = result.signature;
     })
 }
@@ -199,6 +200,7 @@ function eventPublish() {
     data.append("event_json", document.getElementById("event_json").value);
     data.append("relays", document.getElementById("relays_list").value);
 
+    showLoader();
     fetch(
         "/event/publish",
         {
@@ -209,6 +211,9 @@ function eventPublish() {
     .then(response => response.json())
     .then(result => {
         console.log("Done!");
+    })
+    .finally(() => {
+        hideLoader();
     })
 }
 
@@ -297,4 +302,15 @@ function slideToggle(target, duration=speedAnimation) {
     } else {
       return slideUp(target, duration);
     }
+}
+
+
+function showLoader() {
+    document.getElementById("loader_grayout").style.display = "block";
+    document.getElementById("loader").style.display = "block";
+}
+
+function hideLoader() {
+    document.getElementById("loader_grayout").style.display = "none";
+    document.getElementById("loader").style.display = "none";
 }

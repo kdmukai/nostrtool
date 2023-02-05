@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>NostrTool</title>
         <script src="/static/nostr_tool.js"></script>
         <link rel="stylesheet" href="/static/styles.css">
@@ -10,11 +11,6 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <style>
-
-        </style>
     </head>
     <body>
         <h1>NostrTool</h1>
@@ -192,6 +188,11 @@
                 </div>
 
                 <div class="subsection">
+                    Note ID:<br/>
+                    <input id="event_note_id" type="text" readonly>
+                </div>
+
+                <div class="subsection">
                     Signature:<br/>
                     <input id="event_signature" type="text" readonly>
                 </div>
@@ -239,9 +240,16 @@ nostr.zebedee.cloud</textarea>
         </div>
 
 
+
         <div class="footer">
             Created by Keith Mukai<br/>
             <a href="https://snort.social/p/npub1tv8gmfhalwnxxquxjzeh6gtdsdz6vg7vx0s3rt7s7uuw6aujh32qn77wn2" target="_new">npub1tv8gmfha</a>
         </div>
+
+
+        <div class="loader_grayout" id="loader_grayout">
+            <div class="loader" id="loader"></div>
+        </div>
+
     </body>
 </html>
