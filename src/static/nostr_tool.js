@@ -130,7 +130,7 @@ function nip26Sign(dataSource) {
     let pk_hex = document.getElementById("pk_hex").value;
 
     if (pk_hex == "") {
-        showPopupMessage("No private key! Generate or load one at the top.");
+        showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
         return;
     }
 
@@ -185,7 +185,7 @@ function eventSign(type, dataSource) {
     let pk_hex = document.getElementById("pk_hex").value;
 
     if (pk_hex == "") {
-        showPopupMessage("No private key! Generate or load one at the top.");
+        showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
         return;
     }
 
