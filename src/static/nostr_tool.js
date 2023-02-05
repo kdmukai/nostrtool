@@ -7,6 +7,7 @@ function clearPKDisplayFields() {
     document.getElementById("pubkey_hex").value = "";
 }
 
+
 function createNewPK(keytype) {
     let target = null;
     let data = new FormData();
@@ -210,9 +211,18 @@ function eventPublish() {
     )
     .then(response => response.json())
     .then(result => {
-        console.log("Done!");
+        hideLoader();
+        let kind = result.kind;
+        let note_id = result.note_id;
+        if (kind == 1) {
+            showPopupMessage(`The event has been successfully published!<p>Find it by its note ID in your Nostr client app or see it in Snort <a href="https://snort.social/e/${note_id}" target="_new">here</a></p>`);
+        } else {
+            showPopupMessage("The event has been successfully published!");
+        }
     })
-    .finally(() => {
+    .catch(reason => {
+        console.log(reason);
+        alert(reason);
         hideLoader();
     })
 }
@@ -224,11 +234,15 @@ document.addEventListener("DOMContentLoaded", function(){
         let target = document.getElementById(id);
         target.addEventListener('click', () => slideToggle(target.parentElement.querySelector(".section_content")));
     }
-
     slideBtnClick("header_event");
     slideBtnClick("header_nip26");
     slideBtnClick("header_relays");
     slideBtnClick("header_tips");
+
+    document.getElementById("popup_message_ok").addEventListener('click', () => {
+        hidePopupMessage();
+    });
+
 });
 
 
@@ -306,11 +320,24 @@ function slideToggle(target, duration=speedAnimation) {
 
 
 function showLoader() {
-    document.getElementById("loader_grayout").style.display = "block";
+    document.getElementById("popup_grayout").style.display = "block";
     document.getElementById("loader").style.display = "block";
 }
 
 function hideLoader() {
-    document.getElementById("loader_grayout").style.display = "none";
+    document.getElementById("popup_grayout").style.display = "none";
     document.getElementById("loader").style.display = "none";
 }
+
+function showPopupMessage(message) {
+    document.getElementById("popup_grayout").style.display = "block";
+    document.getElementById("popup_message").style.display = "block";
+    document.getElementById("popup_message_content").innerHTML = message;
+}
+
+function hidePopupMessage() {
+    document.getElementById("popup_grayout").style.display = "none";
+    document.getElementById("popup_message").style.display = "none";
+    document.getElementById("popup_message_content").innerHTML = "";
+}
+

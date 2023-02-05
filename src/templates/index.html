@@ -199,7 +199,6 @@
 
                 <div class="subsection">
                     Publish:<br/>
-                    (experimental)<br/>
                     <input onclick="eventPublish();" type="button" value="Publish">
                 </div>
             </div>
@@ -247,8 +246,13 @@ nostr.zebedee.cloud</textarea>
         </div>
 
 
-        <div class="loader_grayout" id="loader_grayout">
-            <div class="loader" id="loader"></div>
+        <div class="popup_grayout" id="popup_grayout"></div>
+
+        <div class="loader" id="loader"></div>
+
+        <div class="popup_message" id="popup_message">
+            <div id="popup_message_content"></div>
+            <input id="popup_message_ok" class="popup_message_ok" type="button" value="close">
         </div>
 
     </body>

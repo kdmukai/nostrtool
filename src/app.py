@@ -143,4 +143,7 @@ def event_publish():
     except Exception as e:
         print(e)
 
-    return dict()
+    return dict(
+        kind=event.kind,
+        note_id=event.note_id
+    )
