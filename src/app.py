@@ -4,7 +4,7 @@ import time
 from binascii import unhexlify
 from flask import Flask, request, render_template
 from nostr.delegation import Delegation
-from nostr.event import Event
+from nostr.event import Event, EventKind
 from nostr.key import Bip39PrivateKey, PrivateKey, PublicKey
 from nostr.relay_manager import RelayManager
 
@@ -43,10 +43,11 @@ def create_pk():
 def load_pk():
     data_type = request.form["type"]
     privkey_data = request.form["privkey_data"]
-    if data_type == "nsec":
-        pk = PrivateKey.from_nsec(privkey_data)
-    elif data_type == "hex":
-        pk = PrivateKey(unhexlify(privkey_data))
+    if data_type == "existing":
+        if privkey_data.startswith("nsec"):
+            pk = PrivateKey.from_nsec(privkey_data)
+        else:
+            pk = PrivateKey(unhexlify(privkey_data))
     else:
         if "," in privkey_data:
             mnemonic = privkey_data.split(",")
@@ -63,30 +64,101 @@ def load_pk():
 
 
 
-@app.route("/nip26/sign", methods=['POST'])
-def nip26_sign_delegation_token():
-    pk = None
-    pk = PrivateKey(unhexlify(request.form["pk_hex"]))
-    delegation_token = request.form["delegation_token"]
-    try:
-        delegation = Delegation.from_token(delegator_pubkey=pk.public_key.hex(), delegation_token=delegation_token)
-        delegatee_pubkey = PublicKey(unhexlify(delegation.delegatee_pubkey))
-    except Exception as e:
-        print(e)
+@app.route("/nip26/create", methods=['POST'])
+def nip26_create_and_sign_delegation_token():
+    delegator_pk = PrivateKey(unhexlify(request.form["delegator_pk_hex"]))
+    kinds_list = request.form.get("kinds")
+    kinds = [int(k) for k in request.form["kinds"].split(",")] if kinds_list else []
+    valid_from = request.form["valid_from"]
+    valid_until = request.form["valid_until"]
 
-    pk.sign_delegation(delegation)
+    delegatee_pk_input = request.form["delegatee_pk"]
+    if delegatee_pk_input:
+        if delegatee_pk_input.startswith("nsec"):
+            delegatee_pk = PrivateKey.from_nsec(delegatee_pk_input)
+        else:
+            delegatee_pk = PrivateKey(unhexlify(delegatee_pk_input))
+    else:
+        delegatee_pk = PrivateKey()
+
+    delegation = Delegation(
+        delegator_pubkey=delegator_pk.public_key.hex(),
+        delegatee_pubkey=delegatee_pk.public_key.hex(),
+        event_kinds=kinds,
+        valid_from=valid_from,
+        valid_until=valid_until,
+    )
+    delegator_pk.sign_delegation(delegation)
+
+    if delegation.event_kinds:
+        kinds_descriptions = [f"{k}: {EventKind.ALL_KINDS[k]}" for k in delegation.event_kinds]
+    else:
+        kinds_descriptions = ["(ALL)"]
 
     return dict(
-        delegator_npub=pk.public_key.bech32(),
-        delegator_hex=pk.public_key.hex(),
-        delegatee_npub=delegatee_pubkey.bech32(),
-        delegatee_hex=delegatee_pubkey.hex(),
-        event_kinds=delegation.event_kinds,
+        delegation_token=delegation.delegation_token,
+        delegator_npub=delegator_pk.public_key.bech32(),
+        delegator_hex=delegator_pk.public_key.hex(),
+        delegatee_npub=delegatee_pk.public_key.bech32(),
+        delegatee_pubkey_hex=delegatee_pk.public_key.hex(),
+        delegatee_nsec=delegatee_pk.bech32(),
+        delegatee_privkey_hex=delegatee_pk.hex(),
+        event_kinds="\n".join(kinds_descriptions),
         valid_from=delegation.valid_from,
         valid_until=delegation.valid_until,
         signature=delegation.signature,
         delegation_tag=delegation.get_tag(),
     )
+
+
+
+@app.route("/nip26/sign", methods=['POST'])
+def nip26_sign_delegation_token():
+    delegator_pk = PrivateKey(unhexlify(request.form["delegator_pk_hex"]))
+    delegation_token = request.form["delegation_token"]
+
+    # Providing the delegatee PK is optional
+    delegatee_pk = None
+    delegatee_pk_input = request.form.get("delegatee_pk")
+    if delegatee_pk_input:
+        if delegatee_pk_input.startswith("nsec"):
+            delegatee_pk = PrivateKey.from_nsec(delegatee_pk_input)
+        else:
+            delegatee_pk = PrivateKey(unhexlify(delegatee_pk_input))
+
+    try:
+        delegation = Delegation.from_token(delegator_pubkey=delegator_pk.public_key.hex(), delegation_token=delegation_token)
+        delegatee_pubkey = PublicKey(unhexlify(delegation.delegatee_pubkey))
+    except Exception as e:
+        print(e)
+
+    delegator_pk.sign_delegation(delegation)
+
+    if delegation.event_kinds:
+        kinds_descriptions = [f"{k}: {EventKind.ALL_KINDS[k]}" for k in delegation.event_kinds]
+    else:
+        kinds_descriptions = "(ALL)"
+
+    return dict(
+        delegator_npub=delegator_pk.public_key.bech32(),
+        delegator_hex=delegator_pk.public_key.hex(),
+        delegatee_npub=delegatee_pubkey.bech32(),
+        delegatee_pubkey_hex=delegatee_pubkey.hex(),
+        delegatee_nsec=delegatee_pk.bech32() if delegatee_pk else None,
+        delegatee_privkey_hex=delegatee_pk.hex() if delegatee_pk else None,
+        event_kinds="\n".join(kinds_descriptions),
+        valid_from=delegation.valid_from,
+        valid_until=delegation.valid_until,
+        signature=delegation.signature,
+        delegation_tag=delegation.get_tag(),
+    )
+
+
+
+@app.route("/event/kinds", methods=['GET'])
+def get_event_kinds():
+    """ Fetch the ID and description of all supported event kinds """
+    return dict(kinds=[[k, v] for k, v in EventKind.ALL_KINDS.items()])
 
 
 
@@ -115,7 +187,6 @@ def event_sign_raw_json():
         event_json=json.dumps(event.to_json(), indent=2),
         note_id=event.note_id,
     )
-
 
 
 

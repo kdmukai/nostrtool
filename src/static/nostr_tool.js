@@ -60,10 +60,8 @@ function createNewPK(keytype) {
 function prepareLoadPK(keytype) {
     clearPKDisplayFields();
 
-    if (keytype == "nsec") {
-        target = document.getElementById("input_nsec_container");
-    } else if (keytype == "hex") {
-        target = document.getElementById("input_hex_container");
+    if (keytype == "existing") {
+        target = document.getElementById("input_existing_container");
     } else if (keytype == "bip39") {
         target = document.getElementById("input_mnemonic_container");
     }
@@ -104,6 +102,9 @@ function loadPK(keytype, targetId) {
         document.getElementById("pubkey_npub").value = result.pubkey_npub;
         document.getElementById("pubkey_hex").value = result.pubkey_hex;
     })
+    .catch(reason => {
+        console.log(reason);
+    })
 
 }
 
@@ -123,19 +124,69 @@ function prepareLoadNip26(container_id) {
 }
 
 
+function nip26CreateAndSign() {
+    let delegator_pk_hex = document.getElementById("pk_hex").value;
+
+    if (delegator_pk_hex == "") {
+        showPopupMessage("No delegator private key!<p>Generate or load one at the top.</p>");
+        return;
+    }
+
+    let delegatee_pk = document.getElementById("nip26_create_delegatee_pk").value;
+    let kinds = [];
+    for (let kind of document.getElementsByName('nip26_create_kinds')) {
+        if (kind.checked) {
+            kinds.push(parseInt(kind.value))
+        }
+    }
+
+    let valid_from = Math.floor(new Date(document.getElementById("nip26_create_valid_from").value).valueOf() / 1000);
+    let valid_until = Math.floor(new Date(document.getElementById("nip26_create_valid_until").value).valueOf() / 1000);
+
+    let data = new FormData();
+    data.append("delegator_pk_hex", delegator_pk_hex);
+    data.append("delegatee_pk", delegatee_pk);
+    data.append("kinds", kinds);
+    data.append("valid_from", valid_from);
+    data.append("valid_until", valid_until);
+
+    fetch(
+        "/nip26/create",
+        {
+            method: 'POST',
+            body: data
+        }
+    )
+    .then(response => response.json())
+    .then(result => {
+        document.getElementById("nip26_token").value = result.delegation_token;
+        document.getElementById("nip26_delegator_npub").value = result.delegator_npub;
+        document.getElementById("nip26_delegator_hex").value = result.delegator_hex;
+        document.getElementById("nip26_delegatee_npub").value = result.delegatee_npub;
+        document.getElementById("nip26_delegatee_pubkey_hex").value = result.delegatee_pubkey_hex;
+        document.getElementById("nip26_delegatee_nsec").value = result.delegatee_nsec;
+        document.getElementById("nip26_delegatee_privkey_hex").value = result.delegatee_privkey_hex;
+        document.getElementById("nip26_kinds").value = result.event_kinds;
+        document.getElementById("nip26_valid_from").value = new Date(result.valid_from * 1000).toISOString();
+        document.getElementById("nip26_valid_until").value = new Date(result.valid_until * 1000).toISOString();
+        document.getElementById("nip26_tag").value = result.delegation_tag;
+        document.getElementById("nip26_signature").value = result.signature;
+    })
+}
+
 
 function nip26Sign(dataSource) {
     let data = new FormData();
     let delegation_token = document.getElementById(dataSource).value;
-    let pk_hex = document.getElementById("pk_hex").value;
+    let delegator_pk_hex = document.getElementById("pk_hex").value;
 
-    if (pk_hex == "") {
-        showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
+    if (delegator_pk_hex == "") {
+        showPopupMessage("No delegator private key!<p>Generate or load one at the top.</p>");
         return;
     }
 
     data.append("delegation_token", delegation_token);
-    data.append("pk_hex", pk_hex);
+    data.append("delegator_pk_hex", delegator_pk_hex);
 
     fetch(
         "/nip26/sign",
@@ -150,7 +201,9 @@ function nip26Sign(dataSource) {
         document.getElementById("nip26_delegator_npub").value = result.delegator_npub;
         document.getElementById("nip26_delegator_hex").value = result.delegator_hex;
         document.getElementById("nip26_delegatee_npub").value = result.delegatee_npub;
-        document.getElementById("nip26_delegatee_hex").value = result.delegatee_hex;
+        document.getElementById("nip26_delegatee_pubkey_hex").value = result.delegatee_pubkey_hex;
+        document.getElementById("nip26_delegatee_nsec").value = result.delegatee_nsec;
+        document.getElementById("nip26_delegatee_privkey_hex").value = result.delegatee_privkey_hex;
         document.getElementById("nip26_kinds").value = result.event_kinds;
         document.getElementById("nip26_valid_from").value = new Date(result.valid_from * 1000).toISOString();
         document.getElementById("nip26_valid_until").value = new Date(result.valid_until * 1000).toISOString();
@@ -250,24 +303,6 @@ function eventPublish() {
 
 
 
-document.addEventListener("DOMContentLoaded", function(){
-    let slideBtnClick = (id) => {
-        let target = document.getElementById(id);
-        target.addEventListener('click', () => slideToggle(target.parentElement.querySelector(".section_content")));
-    }
-    slideBtnClick("header_event");
-    slideBtnClick("header_nip26");
-    slideBtnClick("header_relays");
-    slideBtnClick("header_tips");
-
-    document.getElementById("popup_message_ok").addEventListener('click', () => {
-        hidePopupMessage();
-    });
-
-});
-
-
-
 /**
  * see: https://codepen.io/ivanwebstudio/pen/OJVzPBL
  */
@@ -362,3 +397,54 @@ function hidePopupMessage() {
     document.getElementById("popup_message_content").innerHTML = "";
 }
 
+
+document.addEventListener("DOMContentLoaded", function(){
+    let slideBtnClick = (id) => {
+        let target = document.getElementById(id);
+        target.addEventListener('click', () => slideToggle(target.parentElement.querySelector(".section_content")));
+    }
+    slideBtnClick("header_event");
+    slideBtnClick("header_nip26");
+    slideBtnClick("header_relays");
+    slideBtnClick("header_tips");
+
+    document.getElementById("popup_message_ok").addEventListener('click', () => {
+        hidePopupMessage();
+    });
+
+
+    // Initialize the NIP-26 "Create" elements
+    let target = document.getElementById("nip26_create_kinds_checkboxes");
+
+    // Load the supported event kinds and create checkboxes
+    fetch("/event/kinds")
+    .then(response => response.json())
+    .then(result => {
+        for (kind of result.kinds) {
+            var checkbox = document.createElement('input');
+            checkbox.type = "checkbox";
+            checkbox.name = "nip26_create_kinds";
+            checkbox.className = "nip26_create_kinds";
+            checkbox.value = kind[0];
+            checkbox.id = `nip26_create_kinds_${kind[0]}`;
+            
+            var label = document.createElement('label')
+            label.htmlFor = `nip26_create_kinds_${kind[0]}`;
+            label.appendChild(document.createTextNode(`${kind[0]}: ${kind[1]}`));
+            
+            target.appendChild(checkbox);
+            target.appendChild(label);
+            target.appendChild(document.createElement('br'));
+        }
+    })
+
+
+    document.getElementById('nip26_create_valid_from').valueAsDate = new Date();
+
+    // Default valid_until to one month
+    var valid_until = new Date();
+    valid_until.setMonth(valid_until.getMonth() + 1);
+    document.getElementById('nip26_create_valid_until').valueAsDate = valid_until;
+
+
+});

@@ -34,23 +34,16 @@
                             <input onclick="createNewPK('bip39_24');" type="button" value="From random BIP-39 24-word mnemonic" ><br/>
                         </div>
                         <div class="float_options">
-                            <input onclick="prepareLoadPK('nsec');" type="button" value="Load an existing key (nsec)" ><br/>
-                            <input onclick="prepareLoadPK('hex');" type="button" value="Load an existing key (hex)" ><br/>
+                            <input onclick="prepareLoadPK('existing');" type="button" value="Load an existing key" ><br/>
                             <input onclick="prepareLoadPK('bip39');" type="button" value="Load an existing key from BIP-39 mnemonic" ><br/>
                         </div>
                         <div class="clear_both"></div>
                     </div>
 
-                    <div id="input_nsec_container" class="start_hidden">
-                        Paste nsec:<br/>
-                        <input id="input_nsec" type="text"><br/>
-                        <input onclick="loadPK('nsec', 'input_nsec')" type="button" value="Load">
-                    </div>
-
-                    <div id="input_hex_container" class="start_hidden">
-                        Paste privkey hex:<br/>
-                        <input id="input_hex" type="text"><br/>
-                        <input onclick="loadPK('hex', 'input_hex')" type="button" value="Load">
+                    <div id="input_existing_container" class="start_hidden">
+                        Paste privkey hex or nsec:<br/>
+                        <input id="input_existing" type="text"><br/>
+                        <input onclick="loadPK('existing', 'input_existing')" type="button" value="Load">
                     </div>
 
                     <div id="input_mnemonic_container" class="start_hidden">
@@ -96,7 +89,7 @@
             <div id="content_nip26" class="section_content start_hidden">
                 <div>
                     <div class="float_options">
-                        <input onclick="prepareLoadNip26();" type="button" value="Create a new delegation" ><br/>
+                        <input onclick="prepareLoadNip26('nip26_create_container');" type="button" value="Create a new delegation" ><br/>
                     </div>
                     <div class="float_options">
                         <input onclick="prepareLoadNip26('nip26_raw_delegation_token_container');" type="button" value="Load an existing delegation" ><br/>
@@ -104,9 +97,45 @@
                     <div class="clear_both"></div>
                 </div>
 
+
+                <div id="nip26_create_container" class="start_hidden">
+                    The key you created/loaded above will grant limited signing permissions to the delegatee with the following conditions:
+
+                    <div class="subsection">
+                        Delegatee privkey hex or nsec:<br/>
+                        <input id="nip26_create_delegatee_pk" type="text"><br/>
+                        <div class="note">(leave blank to auto-generate a new PK)</div>
+                    </div>
+
+                    <div class="subsection">
+                        Restrict to:<br/>
+                    <div id="nip26_create_kinds_checkboxes"></div>
+                    </div>
+
+                    <div class="subsection">
+                        Valid from:<br/>
+                        <input id="nip26_create_valid_from" type="date">
+                    </div>
+
+                    <div class="subsection">
+                        Valid until:<br/>
+                        <input id="nip26_create_valid_until" type="date">
+                    </div>
+
+                    <input onclick="nip26CreateAndSign();" type="button" value="Sign delegation" >
+                </div>
+
+
                 <div id="nip26_raw_delegation_token_container" class="start_hidden">
                     Delegation token (see: <a href="https://github.com/nostr-protocol/nips/blob/master/26.md#delegation-token" target="_new">NIP-26</a>):<br/>
                     <input id="nip26_raw_delegation_token" type="text"><br/>
+
+                    <div class="subsection">
+                        Delegatee privkey hex or nsec:<br/>
+                        <input name="delegatee_pk" type="text"><br/>
+                        <div class="note">(Optional, but if omitted, you won't be able to sign events in this UI)</div>
+                    </div>
+
                     <input onclick="nip26Sign('nip26_raw_delegation_token');" type="button" value="Sign delegation" >
                 </div>
 
@@ -123,9 +152,15 @@
                 </div>
 
                 <div class="subsection">
-                    Delegatee (can sign on behalf of the main identity) npub/hex:<br/>
+                    Delegatee pubkey:<br/>
                     <input id="nip26_delegatee_npub" type="text" readonly><br/>
-                    <input id="nip26_delegatee_hex" type="text" readonly>
+                    <input id="nip26_delegatee_pubkey_hex" type="text" readonly>
+                </div>
+
+                <div class="subsection">
+                    Delegatee privkey:<br/>
+                    <input id="nip26_delegatee_nsec" type="text" readonly><br/>
+                    <input id="nip26_delegatee_privkey_hex" type="text" readonly>
                 </div>
 
                 <div class="subsection">
@@ -225,7 +260,7 @@ nostr.zebedee.cloud</textarea>
 
 
 
-        <div id="section_event" class="section">
+        <div id="section_tips" class="section">
             <div id="header_tips" class="section_header">⚡⚡ LN Tips ⚡⚡</div>
 
             <div id="content_tips" align="center" class="section_content start_hidden">
