@@ -1,5 +1,7 @@
-var pk_slide_open = null;
 
+
+/************************* Nostr Private Key *************************/
+var pk_slide_open = null;
 function clearPKDisplayFields() {
     document.getElementById("pk_nsec").value = "";
     document.getElementById("pk_hex").value = "";
@@ -109,6 +111,8 @@ function loadPK(keytype, targetId) {
 }
 
 
+
+/************************* NIP-26 *************************/
 var curNip26Slide = null;
 function prepareLoadNip26(container_id) {
     if (curNip26Slide !== null && curNip26Slide.id != container_id) {
@@ -214,10 +218,7 @@ function nip26Sign(dataSource) {
 
 
 
-
-/***************************************************************
- *      EVENTS
- ***************************************************************/
+/************************* EVENTS *************************/
 var curEventSlide = null;
 function showEvent(container_id) {
     if (curEventSlide !== null && curEventSlide.id != container_id) {
@@ -244,6 +245,23 @@ function eventSign(type, dataSource) {
 
     data.append("type", type);
     data.append("event_data", document.getElementById(dataSource).value);
+
+    if (type == "nip26_text_note") {
+        // Need to pull the delegatee's PK and the delegation tag
+        pk_hex = document.getElementById("nip26_delegatee_privkey_hex").value;
+        if (pk_hex == "") {
+            showPopupMessage("No delegatee private key!<p>Return to the NIP-26 Delegation section.</p>");
+            return;
+        }
+
+        let delegation_tag = document.getElementById("nip26_tag").value;
+        if (delegation_tag == "") {
+            showPopupMessage("No delegation tag created/loaded!<p>Return to the NIP-26 Delegation section.</p>");
+            return;
+        }
+        data.append("delegation_tag", delegation_tag)
+    }
+
     data.append("pk_hex", pk_hex);
 
     fetch(
@@ -303,11 +321,9 @@ function eventPublish() {
 
 
 
-/**
- * see: https://codepen.io/ivanwebstudio/pen/OJVzPBL
- */
+/************************* Helper utils *************************/
+// see: https://codepen.io/ivanwebstudio/pen/OJVzPBL
 var speedAnimation = 400;
-
 function slideUp(target, duration=speedAnimation) {
     target.style.transitionProperty = 'height, margin, padding';
     target.style.transitionDuration = duration + 'ms';
@@ -398,6 +414,8 @@ function hidePopupMessage() {
 }
 
 
+
+/************************* Initialization *************************/
 document.addEventListener("DOMContentLoaded", function(){
     let slideBtnClick = (id) => {
         let target = document.getElementById(id);

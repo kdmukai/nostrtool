@@ -107,7 +107,7 @@ def nip26_create_and_sign_delegation_token():
         valid_from=delegation.valid_from,
         valid_until=delegation.valid_until,
         signature=delegation.signature,
-        delegation_tag=delegation.get_tag(),
+        delegation_tag=str(delegation.get_tag()),
     )
 
 
@@ -150,7 +150,7 @@ def nip26_sign_delegation_token():
         valid_from=delegation.valid_from,
         valid_until=delegation.valid_until,
         signature=delegation.signature,
-        delegation_tag=delegation.get_tag(),
+        delegation_tag=str(delegation.get_tag()),
     )
 
 
@@ -163,15 +163,22 @@ def get_event_kinds():
 
 
 @app.route("/event/sign", methods=['POST'])
-def event_sign_raw_json():
-    pk = None
+def event_sign():
     event = None
     pk = PrivateKey(unhexlify(request.form["pk_hex"]))
     data_type = request.form["type"]
+    msg = request.form.get("event_data")
+
+    print(request.form)
 
     if data_type == "text_note":
-        msg = request.form["event_data"]
         event = Event(msg)
+
+    elif data_type == "nip26_text_note":
+        # We're signing w/the delegatee's PK. Need to include their delegation tag.
+        import ast
+        delegation_tag = ast.literal_eval(request.form["delegation_tag"])
+        event = Event(msg, tags=[delegation_tag])
 
     elif data_type == "raw_json":
         event_json = request.form["event_data"]

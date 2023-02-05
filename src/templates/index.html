@@ -92,7 +92,10 @@
                         <input onclick="prepareLoadNip26('nip26_create_container');" type="button" value="Create a new delegation" ><br/>
                     </div>
                     <div class="float_options">
-                        <input onclick="prepareLoadNip26('nip26_raw_delegation_token_container');" type="button" value="Load an existing delegation" ><br/>
+                        <input onclick="prepareLoadNip26('nip26_raw_delegation_token_container');" type="button" value="Parse a delegation token" ><br/>
+                    </div>
+                    <div class="float_options">
+                        <input onclick="prepareLoadNip26('nip26_existing_tag_container');" type="button" value="Load an existing delegation tag" ><br/>
                     </div>
                     <div class="clear_both"></div>
                 </div>
@@ -181,6 +184,7 @@
                 <div class="subsection">
                     Delegation tag:<br/>
                     <textarea id="nip26_tag" cols="80" rows="6" readonly></textarea>
+                    <div class="note">(this tag gets added to any event that the delegatee signs on behalf of the delegator. It can be saved and reused until the delegation expires)</div>
                 </div>
 
                 <div class="subsection">
@@ -198,9 +202,9 @@
             <div id="content_event" class="section_content start_hidden">
 
                 <div>
-                    <input onclick="showEvent('event_text_note_container')" type="button" class="float_options" value="Text note">
-                    <input onclick="" type="button" class="float_options" value="NIP-26 delegated text note">
-                    <input onclick="showEvent('event_raw_json_container')" type="button" class="float_options" value="Raw event json">
+                    <input onclick="showEvent('event_text_note_container')" type="button" class="float_options" value="New text note">
+                    <input onclick="showEvent('event_nip26_text_note_container')" type="button" class="float_options" value="New NIP-26 delegated text note">
+                    <input onclick="showEvent('event_raw_json_container')" type="button" class="float_options" value="From raw event json">
                     <div class="clear_both"></div>
                 </div>
 
@@ -217,8 +221,23 @@
                     <input onclick="eventSign('raw_json', 'event_raw_json');" type="button" value="Sign event" >
                 </div>
 
+                <div id="event_nip26_text_note_container" class="start_hidden">
+                    Uses the delegation tag above so the delegatee can sign a new text note on behalf of the delegator.
+                    
+                    <div class="subsection">
+                        Text note:<br/>
+                        <textarea id="event_nip26_text_note" cols="60" rows="5"></textarea>
+                    </div>
+
+                    <div class="subsection">
+                        <input onclick="eventSign('nip26_text_note', 'event_nip26_text_note');" type="button" value="Sign event w/delegatee" >
+                    </div>
+
+                </div>
+
+
                 <div class="subsection">
-                    Event json:<br/>
+                    Raw event json:<br/>
                     <textarea id="event_json" cols="80" rows="10" readonly></textarea><br/>
                 </div>
 
