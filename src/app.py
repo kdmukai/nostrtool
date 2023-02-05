@@ -27,7 +27,7 @@ def create_pk():
         pk = PrivateKey()
     else:
         pk = Bip39PrivateKey.with_mnemonic_length(int(request.form["mnemonic_length"]))
-        mnemonic = pk.mnemonic
+        mnemonic = ", ".join(pk.mnemonic)
 
     return dict(
         pk_hex=pk.hex(),

@@ -53,4 +53,5 @@ RUN ln -s ../python-nostr/nostr/ nostr
 
 # Zappa
 RUN mkdir /root/.aws
+RUN touch /root/.aws/credentials
 RUN /srv/.env/bin/pip install zappa --no-cache-dir

@@ -55,7 +55,7 @@
 
                     <div id="input_mnemonic_container" class="start_hidden">
                         Paste 12-word or 24-word mnemonic (separated w/spaces or commas):<br/>
-                        <input id="input_mnemonic" type="text"><br/>
+                        <textarea id="input_mnemonic" cols="80" rows="3"></textarea><br/>
                         <input onclick="loadPK('bip39', 'input_mnemonic')" type="button" value="Load">
                     </div>
                 </div>
@@ -64,7 +64,7 @@
                 <div id="subsection_nsec" class="subsection">
                     <div id="bip39_mnemonic_container" class="hideable_container start_hidden">
                         BIP-39 mnemonic:<br/>
-                        <input id="bip39_mnemonic" type="text" readonly><br/>
+                        <textarea id="bip39_mnemonic" type="text" cols="80" rows="3" readonly></textarea><br/>
                         <br/>
                     </div>
 
