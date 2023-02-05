@@ -127,8 +127,15 @@ function prepareLoadNip26(container_id) {
 function nip26Sign(dataSource) {
     let data = new FormData();
     let delegation_token = document.getElementById(dataSource).value;
+    let pk_hex = document.getElementById("pk_hex").value;
+
+    if (pk_hex == "") {
+        showPopupMessage("No private key! Generate or load one at the top.");
+        return;
+    }
+
     data.append("delegation_token", delegation_token);
-    data.append("pk_hex", document.getElementById("pk_hex").value);
+    data.append("pk_hex", pk_hex);
 
     fetch(
         "/nip26/sign",
@@ -175,9 +182,16 @@ function showEvent(container_id) {
 
 function eventSign(type, dataSource) {
     let data = new FormData();
+    let pk_hex = document.getElementById("pk_hex").value;
+
+    if (pk_hex == "") {
+        showPopupMessage("No private key! Generate or load one at the top.");
+        return;
+    }
+
     data.append("type", type);
     data.append("event_data", document.getElementById(dataSource).value);
-    data.append("pk_hex", document.getElementById("pk_hex").value);
+    data.append("pk_hex", pk_hex);
 
     fetch(
         "/event/sign",
@@ -198,7 +212,14 @@ function eventSign(type, dataSource) {
 
 function eventPublish() {
     let data = new FormData();
-    data.append("event_json", document.getElementById("event_json").value);
+    let event_json = document.getElementById("event_json").value;
+
+    if (document.getElementById("event_signature").value == "") {
+        showPopupMessage("Can't publish until the event is signed");
+        return;
+    }
+
+    data.append("event_json", event_json);
     data.append("relays", document.getElementById("relays_list").value);
 
     showLoader();

@@ -82,7 +82,11 @@ textarea {
 .clear_both {
     clear: both;
 }
-
+.note {
+    font-size: 0.7em;
+    color: #333;
+    font-style: italic;
+}
 
 .footer {
     margin-top: 3em;
