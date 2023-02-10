@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+
+
+{% block intro %}
+    Streamlined UI for publishing real-world NIP-26 posts.<br/>
+{% endblock %}
+
+
+
+
+{% block main_content %}
+    {% if session["name"] %}
+        <div class="subsection">
+            Posting on behalf of:<br/>
+            <input id="nip26_delegator_name" type="text" readonly value="{{ session['name'] }}">
+            <div class="npub">npub: {{ session["delegator_npub"][4:13] }} / pubkey hex: {{ session["delegator_pubkey_hex"][:8] }}</div>
+        </div>
+    {% endif %}
+
+    <div class="subsection">
+        Delegatee's privkey hex:<br/>
+        <input id="nip26_delegatee_privkey_hex" type="text" value="{{ session['nip26_delegatee_privkey_hex'] }}">
+        {% if session["nip26_delegatee_privkey_hex"] %}
+            <div class="npub">npub: {{ session["nip26_delegatee_npub"][4:13] }} / pubkey hex: {{ session["nip26_delegatee_pubkey_hex"][:8] }}</div>
+        {% endif %}
+    </div>
+
+    <div class="subsection">
+        Signed delegation tag:
+        <textarea id="nip26_tag" rows="6">{{ session['nip26_tag'] }}</textarea>
+    </div>
+
+    <div class="subsection">
+        Text note:<br/>
+        <textarea class="pretty_textarea" id="event_nip26_text_note" rows="9"></textarea>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventSign('nip26_text_note', 'event_nip26_text_note');" type="button" value="Sign event w/delegatee" >
+    </div>
+
+    <div class="subsection">
+        Raw event json:<br/>
+        <textarea id="event_json" cols="80" rows="10" readonly></textarea><br/>
+    </div>
+
+    <div class="subsection">
+        Note ID:<br/>
+        <input id="event_note_id" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        Signature:<br/>
+        <input id="event_signature" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventPublish();" type="button" value="Publish"><br/>
+        <div class="note">(not guaranteed to work!)</div>
+    </div>
+{% endblock %}
+
+
+
+{% block end_content %}
+    <script>
+        /************************* Initialization *************************/
+        document.addEventListener("DOMContentLoaded", function(){
+            document.getElementById("popup_message_ok").addEventListener('click', () => {
+                // Reset fields
+                document.getElementById("event_nip26_text_note").value = "";
+                document.getElementById("event_json").value = "";
+                // document.getElementById("event_note_id").value = "";
+                document.getElementById("event_signature").value = "";
+                
+            });
+        });
+    </script>
+{% endblock %}

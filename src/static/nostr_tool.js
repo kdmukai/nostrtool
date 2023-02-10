@@ -234,19 +234,20 @@ function showEvent(container_id) {
 }
 
 
+
 function eventSign(type, dataSource) {
     let data = new FormData();
-    let pk_hex = document.getElementById("pk_hex").value;
-
-    if (pk_hex == "") {
-        showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
-        return;
-    }
+    let pk_hex = null;
 
     data.append("type", type);
-    data.append("event_data", document.getElementById(dataSource).value);
 
-    if (type == "nip26_text_note") {
+    if (type.includes("metadata") || type.includes("contacts")) {
+        data.append("event_data", JSON.stringify(JSON.parse(document.getElementById(dataSource).value)));
+    } else {
+        data.append("event_data", document.getElementById(dataSource).value);
+    }
+
+    if (type.includes("nip26")) {
         // Need to pull the delegatee's PK and the delegation tag
         pk_hex = document.getElementById("nip26_delegatee_privkey_hex").value;
         if (pk_hex == "") {
@@ -260,6 +261,14 @@ function eventSign(type, dataSource) {
             return;
         }
         data.append("delegation_tag", delegation_tag)
+
+    } else {
+        pk_hex = document.getElementById("pk_hex").value;
+
+        if (pk_hex == "") {
+            showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
+            return;
+        }    
     }
 
     data.append("pk_hex", pk_hex);
@@ -415,21 +424,28 @@ function hidePopupMessage() {
 
 
 
+function slideBtnClick(id) {
+    let target = document.getElementById(id);
+    target.addEventListener('click', () => slideToggle(target.parentElement.querySelector(".section_content")));
+}
+
+
+
 /************************* Initialization *************************/
 document.addEventListener("DOMContentLoaded", function(){
-    let slideBtnClick = (id) => {
-        let target = document.getElementById(id);
-        target.addEventListener('click', () => slideToggle(target.parentElement.querySelector(".section_content")));
-    }
-    slideBtnClick("header_event");
-    slideBtnClick("header_nip26");
     slideBtnClick("header_relays");
     slideBtnClick("header_tips");
 
     document.getElementById("popup_message_ok").addEventListener('click', () => {
         hidePopupMessage();
     });
+});
 
+
+
+function initializeIndex() {
+    slideBtnClick("header_event");
+    slideBtnClick("header_nip26");
 
     // Initialize the NIP-26 "Create" elements
     let target = document.getElementById("nip26_create_kinds_checkboxes");
@@ -463,6 +479,4 @@ document.addEventListener("DOMContentLoaded", function(){
     var valid_until = new Date();
     valid_until.setMonth(valid_until.getMonth() + 1);
     document.getElementById('nip26_create_valid_until').valueAsDate = valid_until;
-
-
-});
+}

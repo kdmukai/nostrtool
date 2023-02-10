@@ -132,3 +132,4 @@ zappa_settings.json
 src/nostr
 python-nostr/
 .vscode/settings.json
+src/.app_secret

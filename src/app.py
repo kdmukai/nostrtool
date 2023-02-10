@@ -8,13 +8,20 @@ from nostr.event import Event, EventKind
 from nostr.key import Bip39PrivateKey, PrivateKey, PublicKey
 from nostr.relay_manager import RelayManager
 
+from client import client_bp
+
 
 app = Flask(__name__)
+app.register_blueprint(client_bp, url_prefix="/client")
+
+with open('.app_secret', 'r') as secret_file:
+    app.secret_key = secret_file.readline()
 
 
 
 @app.route("/")
-def hello_world():
+def index():
+    print(request.host)
     return render_template("index.html")
 
 
@@ -167,25 +174,32 @@ def event_sign():
     event = None
     pk = PrivateKey(unhexlify(request.form["pk_hex"]))
     data_type = request.form["type"]
-    msg = request.form.get("event_data")
 
-    print(request.form)
-
-    if data_type == "text_note":
-        event = Event(msg)
-
-    elif data_type == "nip26_text_note":
-        # We're signing w/the delegatee's PK. Need to include their delegation tag.
-        import ast
-        delegation_tag = ast.literal_eval(request.form["delegation_tag"])
-        event = Event(msg, tags=[delegation_tag])
-
-    elif data_type == "raw_json":
+    if data_type == "raw_json":
         event_json = request.form["event_data"]
         try:
             event = Event.from_json(event_json)
         except Exception as e:
             print(e)
+
+    else:
+        msg = request.form.get("event_data")
+        tags = []
+
+        if "metadata" in data_type:
+            event_kind = EventKind.SET_METADATA
+        elif "contacts" in data_type:
+            event_kind = EventKind.CONTACTS
+        else:
+            event_kind = EventKind.TEXT_NOTE
+
+        if "nip26" in data_type:
+            # We're signing w/the delegatee's PK. Need to include their delegation tag.
+            import ast
+            delegation_tag = ast.literal_eval(request.form["delegation_tag"])
+            tags=[delegation_tag]
+        
+        event = Event(content=msg, kind=event_kind, tags=tags)
 
     pk.sign_event(event)
 
@@ -205,21 +219,24 @@ def event_publish():
     try:
         event = Event.from_json(event_json)
 
-        relay_manager = RelayManager(ssl_options={"cert_reqs": ssl.CERT_NONE})
+        relay_manager = RelayManager()
         for relay in relays:
-            relay_manager.add_relay(f"wss://{relay}")
+            relay_manager.add_relay(
+                url=f"wss://{relay}",
+            )
             print(f"added {relay}")
-        relay_manager.open_connections() # NOTE: This disables ssl certificate verification
-        time.sleep(1.25) # allow the connections to open
+
+        time.sleep(1.5) # allow the connections to open
 
         print("Publishing!")
         relay_manager.publish_event(event)
         time.sleep(1) # allow the messages to send
 
-        relay_manager.close_connections()
+        relay_manager.close_all_relay_connections()
         print("done")
     except Exception as e:
-        print(e)
+        import traceback
+        traceback.print_exc()
 
     return dict(
         kind=event.kind,

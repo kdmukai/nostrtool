@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+
+
+{% block intro %}
+    Streamlined UI for publishing real-world NIP-26 posts.<br/>
+{% endblock %}
+
+
+
+
+{% block main_content %}
+    {% if session["name"] %}
+        <div class="subsection">
+            User:<br/>
+            <input id="name" type="text" readonly value="{{ session['name'] }}">
+            <div class="npub">npub: {{ session["delegator_npub"][4:13] }} / pubkey hex: {{ session["delegator_pubkey_hex"][:8] }}</div>
+        </div>
+    {% endif %}
+
+    <div class="subsection">
+        User's privkey hex:<br/>
+        <input id="pk_hex" type="password" value="{{ session['pk_hex'] }}">
+    </div>
+
+    <div class="subsection">
+        Text note:<br/>
+        <textarea class="pretty_textarea" id="event_text_note" rows="9"></textarea>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventSign('text_note', 'event_text_note');" type="button" value="Sign event" >
+    </div>
+
+    <div class="subsection">
+        Raw event json:<br/>
+        <textarea id="event_json" cols="80" rows="10" readonly></textarea><br/>
+    </div>
+
+    <div class="subsection">
+        Note ID:<br/>
+        <input id="event_note_id" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        Signature:<br/>
+        <input id="event_signature" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventPublish();" type="button" value="Publish"><br/>
+        <div class="note">(not guaranteed to work!)</div>
+    </div>
+{% endblock %}
+
+
+
+{% block end_content %}
+    <script>
+        /************************* Initialization *************************/
+        document.addEventListener("DOMContentLoaded", function(){
+            document.getElementById("popup_message_ok").addEventListener('click', () => {
+                // Reset fields
+                document.getElementById("event_nip26_text_note").value = "";
+                document.getElementById("event_json").value = "";
+                // document.getElementById("event_note_id").value = "";
+                document.getElementById("event_signature").value = "";
+                
+            });
+        });
+    </script>
+{% endblock %}

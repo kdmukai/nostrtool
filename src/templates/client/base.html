@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>NostrTool</title>
+        <script src="/static/nostr_tool.js"></script>
+        <link rel="stylesheet" href="/static/styles.css">
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    </head>
+    <body>
+        {% if session["name"] %}
+            <div class="top_nav_right"><a href="{{ url_for('client.user') }}">{{ session["name"] }}</a></div>
+        {% endif %}
+
+        <h1>NostrTool</h1>
+
+        <div class="intro">
+            {% block intro %}
+            {% endblock %}
+        </div>
+
+
+        <div class="section_content">
+            {% block main_content %}
+            {% endblock %}
+        </div>
+        <br/>
+        <br/>
+
+
+        <div id="section_relays" class="section">
+            <div id="header_relays" class="section_header">Relays</div>
+
+            <div class="section_content start_hidden">
+                <textarea id="relays_list" rows="12" cols="80">{% if session['relays'] %}{{ session['relays'] }}{% else %}nos.lol
+relay.nostr.info
+relay.snort.social
+nostr-pub.wellorder.net
+nostr.oxtr.dev
+brb.io
+nostr-pub.semisol.dev
+nostr.zebedee.cloud
+{% endif %}</textarea>
+            </div>
+        </div>
+
+
+
+
+        <div id="section_tips" class="section">
+            <div id="header_tips" class="section_header">⚡⚡ LN Tips ⚡⚡</div>
+
+            <div id="content_tips" align="center" class="section_content start_hidden">
+                <img src="/static/lnurl.png" width="50%">
+                <br/>
+                <input type="button" onclick="location.href='lightning:LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2';" value="⚡ tip via LNURL ⚡"><br/>
+                <br/>
+
+                <input type="text" readonly value="LNURL1DP68GURN8GHJ7AMPD3KX2AR0VEEKZAR0WD5XJTNRDAKJ7TNHV4KXCTTTDEHHWM30D3H82UNVWQHK6ETJWFUKGMMRW3HHYDF5UYSVD2">
+            </div>            
+        </div>
+
+
+
+        <div class="footer">
+            Created by Keith Mukai<br/>
+            <a href="https://snort.social/p/npub1tv8gmfhalwnxxquxjzeh6gtdsdz6vg7vx0s3rt7s7uuw6aujh32qn77wn2" target="_new">npub1tv8gmfha</a>
+        </div>
+
+
+        <div class="popup_grayout" id="popup_grayout"></div>
+
+        <div class="loader" id="loader"></div>
+
+        <div class="popup_message" id="popup_message">
+            <div id="popup_message_content"></div>
+            <input id="popup_message_ok" class="popup_message_ok" type="button" value="close">
+        </div>
+
+        {% block end_content %}
+        {% endblock %}
+    </body>
+</html>

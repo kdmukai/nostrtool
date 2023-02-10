@@ -7,7 +7,7 @@ body {
     font-family: 'Open Sans', sans-serif;
     background-color: #cc99ff;
 }
-input[type="text"] {
+input[type="text"], input[type="password"] {
     width: 90%;
     font-size: 16px;
     padding: 0.5em;
@@ -15,7 +15,7 @@ input[type="text"] {
     border: 1px solid #999;
     color: #333;
 }
-input[type="button"] {
+input[type="button"], input[type="submit"] {
     border-radius: 0.5em;
     border: 1px solid rgb(182, 4, 182);
     background-color: rgb(182, 4, 182);
@@ -88,6 +88,13 @@ textarea {
     font-style: italic;
 }
 
+
+textarea.pretty_textarea {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1em;
+    padding: 0.5em;
+}
+
 .footer {
     margin-top: 3em;
     border-top: 1px solid #ccc;
@@ -151,4 +158,17 @@ textarea {
     z-index: 100;
     margin-left: -170px;
     margin-top: -95px;
+}
+
+
+/* client styles */
+.top_nav_right {
+    float: right;
+    font-size: 0.9em;
+}
+
+.npub {
+    font-size: 0.8em;
+    margin-left: 0.5em;
+    color: #555;
 }

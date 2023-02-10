@@ -51,7 +51,10 @@ RUN /srv/.env/bin/pip install -r requirements.txt --no-cache-dir
 WORKDIR /srv/nostrtool/src
 RUN ln -s ../python-nostr/nostr/ nostr
 
+# Generate new Flask app secret key
+RUN /srv/.env/bin/python -c 'import secrets; print(secrets.token_hex())' > .app_secret
+
 # Zappa
-RUN mkdir /root/.aws
-RUN touch /root/.aws/credentials
-RUN /srv/.env/bin/pip install zappa --no-cache-dir
+# RUN mkdir /root/.aws
+# RUN touch /root/.aws/credentials
+# RUN /srv/.env/bin/pip install zappa --no-cache-dir

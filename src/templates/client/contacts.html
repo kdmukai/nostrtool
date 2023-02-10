@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+
+
+{% block intro %}
+    Streamlined UI for publishing real-world NIP-26 posts.<br/>
+{% endblock %}
+
+
+
+
+{% block main_content %}
+    <div class="subsection">
+        User's privkey hex:<br/>
+        <input id="pk_hex" type="password" value="">
+    </div>
+
+    <div class="subsection">
+        Name:<br/>
+        <textarea id="contacts" rows="18">{
+    "wss://eden.nostr.land": {"read": true, "write": true},
+    "wss://relay.damus.io": {"read": true, "write": true},
+    "wss://nostr-pub.wellorder.net": {"read": true, "write": true},
+    "wss://relay.nostr.info": {"read": true, "write": true},
+    "wss://nostr.bitcoiner.social": {"read": true, "write": true},
+    "wss://nos.lol": {"read": true, "write": true},
+    "wss://brb.io": {"read": true, "write": true},
+    "wss://relay.snort.social": {"read": true, "write": true},
+    "wss://nostr.milou.lol": {"read": true, "write": true},
+    "wss://atlas.nostr.land": {"read": true, "write": true},
+    "wss://nostr.rocks": {"read": true, "write": true},
+    "wss://relayer.fiatjaf.com": {"read": true, "write": true},
+    "wss://nostr-2.zebedee.cloud": {"read": true, "write": true},
+    "wss://nostr.zebedee.cloud": {"read": true, "write": true},
+    "wss://nostr.oxtr.dev": {"read": true, "write": true},
+    "wss://puravida.nostr.land": {"read": true, "write": true}
+}</textarea>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventSign('contacts', 'contacts');" type="button" value="Sign contacts (preferred relays)" >
+    </div>
+
+    <div class="subsection">
+        Raw event json:<br/>
+        <textarea id="event_json" cols="80" rows="10" readonly></textarea><br/>
+    </div>
+
+    <div class="subsection">
+        Note ID:<br/>
+        <input id="event_note_id" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        Signature:<br/>
+        <input id="event_signature" type="text" readonly>
+    </div>
+
+    <div class="subsection">
+        <input onclick="eventPublish();" type="button" value="Publish"><br/>
+        <div class="note">(not guaranteed to work!)</div>
+    </div>
+{% endblock %}
+
+
+
+{% block end_content %}
+    <script>
+        /************************* Initialization *************************/
+        document.addEventListener("DOMContentLoaded", function(){
+            document.getElementById("popup_message_ok").addEventListener('click', () => {
+                // Reset fields
+                document.getElementById("event_nip26_text_note").value = "";
+                document.getElementById("event_json").value = "";
+                // document.getElementById("event_note_id").value = "";
+                document.getElementById("event_signature").value = "";
+                
+            });
+        });
+    </script>
+{% endblock %}

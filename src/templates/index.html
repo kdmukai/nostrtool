@@ -216,7 +216,7 @@
                 </div>
 
                 <div id="event_raw_json_container" class="start_hidden">
-                    Nostr event json:<br/>
+                    Raw event json:<br/>
                     <textarea id="event_raw_json" cols="80" rows="10"></textarea><br/>
                     <input onclick="eventSign('raw_json', 'event_raw_json');" type="button" value="Sign event" >
                 </div>
@@ -309,5 +309,12 @@ nostr.zebedee.cloud</textarea>
             <input id="popup_message_ok" class="popup_message_ok" type="button" value="close">
         </div>
 
+
+        <script>
+            /************************* Initialization *************************/
+            document.addEventListener("DOMContentLoaded", function(){
+                initializeIndex();
+            });
+        </script>
     </body>
 </html>

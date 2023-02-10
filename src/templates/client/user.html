@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>NostrTool</title>
+        <link rel="stylesheet" href="/static/styles.css">
+
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    </head>
+    <body>
+        <h1>NostrTool</h1>
+
+        <div class="intro">
+            Optionally store your info in your local browser session.<br/>
+            <br/>
+        </div>
+
+
+        {% if session["name"] %}
+            <div class="section_content">
+                <div>{{ session["name"] }}</div>
+                {{ session["delegator_npub"]}}<br/>
+                <br/>
+
+                <form method="post">
+                    <input type="hidden" name="clear" value="1">
+                    <input type="submit" value="Clear session">
+                </form>
+            </div>
+
+        {% else %}
+            <div class="section_content">
+                <form method="post">
+                    <div class="subsection">
+                        Name:<br/>
+                        <input name="name" type="text">
+                    </div>
+
+                    <div class="subsection">
+                        User's npub:<br/>
+                        <input name="delegator_npub" type="text">
+                    </div>
+
+                    <div class="subsection">
+                        User's nsec:<br/>
+                        <input name="delegator_nsec" type="text">
+                    </div>
+
+                    <div class="subsection">
+                        Delegatee's privkey hex:<br/>
+                        <input name="nip26_delegatee_privkey_hex" type="text">
+                    </div>
+
+                    <div class="subsection">
+                        Signed delegation tag:<br/>
+                        <textarea name="nip26_tag" rows="6"></textarea>
+                    </div>
+
+                    <div class="subsection">
+                        Relays:<br/>
+                        <textarea name="relays" rows="15">nos.lol
+relay.nostr.info
+relay.snort.social
+nostr-pub.wellorder.net
+nostr.oxtr.dev
+brb.io
+nostr-pub.semisol.dev
+nostr.zebedee.cloud</textarea>
+                    </div>
+
+                    <div class="subsection">
+                        <input type="submit">
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+
+
+
+        <div class="footer">
+            Created by Keith Mukai<br/>
+            <a href="https://snort.social/p/npub1tv8gmfhalwnxxquxjzeh6gtdsdz6vg7vx0s3rt7s7uuw6aujh32qn77wn2" target="_new">npub1tv8gmfha</a>
+        </div>
+
+
+    </body>
+</html>
