@@ -3,7 +3,7 @@
 """
 
 from flask import request, session, render_template, Blueprint
-from nostr.key import PrivateKey
+from nostr.key import PrivateKey, PublicKey
 
 
 
@@ -31,14 +31,16 @@ def user():
             session.clear()
 
         else:
+            session.clear()
             for k, v in request.form.items():
-                session[k] = v
+                if v:
+                    session[k] = v
             
             if "delegator_nsec" in session:
                 pk = PrivateKey.from_nsec(session["delegator_nsec"])
                 session["pk_hex"] = pk.hex()
-                session["delegator_npub"] = pk.public_key.bech32()
-                session["delegator_pubkey_hex"] = pk.public_key.hex()
+            
+            session["delegator_pubkey_hex"] = PublicKey.from_npub(session["delegator_npub"]).hex()
             
             if "nip26_delegatee_privkey_hex" in session:
                 pk = PrivateKey(bytes.fromhex(session["nip26_delegatee_privkey_hex"]))
