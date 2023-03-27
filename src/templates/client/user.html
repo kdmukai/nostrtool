@@ -3,6 +3,8 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>NostrTool</title>
+        <script src="/static/nostr_tool.js"></script>
+        <script src="/static/html5-qrcode.min.js"></script>
         <link rel="stylesheet" href="/static/styles.css">
 
         <!-- Google Fonts -->
@@ -41,8 +43,19 @@
                     </div>
 
                     <div class="subsection">
+                        <div class="float_options danger">
+                            <input onclick=";" type="button" value="Load key from SeedQR" ><br/>
+                            <input onclick=";" type="button" value="Load nsec from QR" ><br/>
+                        </div>
+   
+                        <div class="float_options">
+                            <input onclick="scanQRtoElement('Scan Pubkey npub QR', 'delegator_npub');" type="button" value="Load npub from QR" ><br/>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
                         User's npub:<br/>
-                        <input name="delegator_npub" type="text">
+                        <input name="delegator_npub" id="delegator_npub" type="text">
                     </div>
 
                     <div class="subsection">
@@ -86,6 +99,17 @@ nostr.zebedee.cloud</textarea>
             <a href="https://snort.social/p/npub1tv8gmfhalwnxxquxjzeh6gtdsdz6vg7vx0s3rt7s7uuw6aujh32qn77wn2" target="_new">npub1tv8gmfha</a>
         </div>
 
+        <div class="popup_grayout" id="popup_grayout"></div>
 
+        <div class="popup_message" id="popup_message">
+            <div id="popup_message_content"></div>
+            <input id="popup_message_ok" class="popup_message_ok" type="button" value="close">
+        </div>
+
+        <div class="popup_qrcode" id="popup_qrcode">
+            <div id="popup_qrcode_title" class="popup_qrcode_title"></div>
+            <div id="popup_qrcode_container" class="popup_qrcode_container"></div>
+            <input id="popup_qrcode_ok" class="popup_message_ok" type="button" value="close">
+        </div>
     </body>
 </html>

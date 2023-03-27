@@ -47,33 +47,47 @@ def create_pk():
 
 
 @app.route("/key/load", methods=['POST'])
-def load_pk():
+def load_key():
     data_type = request.form["type"]
-    privkey_data = request.form["privkey_data"]
+    key_data = request.form["key_data"]
     if data_type == "existing":
-        if privkey_data.startswith("nsec"):
-            pk = PrivateKey.from_nsec(privkey_data)
+        if key_data.startswith("nsec"):
+            pk = PrivateKey.from_nsec(key_data)
         else:
-            pk = PrivateKey(unhexlify(privkey_data))
+            pk = PrivateKey(unhexlify(key_data))
+        pubkey = pk.public_key
+    elif data_type == "pubkey":
+        pk = None
+        if key_data.startswith("npub"):
+            pubkey = PublicKey.from_npub(key_data)
+        else:
+            pubkey = PublicKey(unhexlify(key_data))
     else:
-        if "," in privkey_data:
-            mnemonic = privkey_data.split(",")
+        if "," in key_data:
+            mnemonic = key_data.split(",")
         else:
-            mnemonic = privkey_data.split()
+            mnemonic = key_data.split()
         pk = Bip39PrivateKey(mnemonic=mnemonic)
+        pubkey = pk.public_key
 
     return dict(
-        pk_hex=pk.hex(),
-        pk_nsec=pk.bech32(),
-        pubkey_hex=pk.public_key.hex(),
-        pubkey_npub=pk.public_key.bech32(),
+        pk_hex=pk.hex() if pk else None,
+        pk_nsec=pk.bech32() if pk else None,
+        pubkey_hex=pubkey.hex(),
+        pubkey_npub=pubkey.bech32(),
     )
 
 
 
 @app.route("/nip26/create", methods=['POST'])
 def nip26_create_and_sign_delegation_token():
-    delegator_pk = PrivateKey(unhexlify(request.form["delegator_pk_hex"]))
+    if "delegator_pk_hex" in request.form:
+        delegator_pk = PrivateKey(unhexlify(request.form["delegator_pk_hex"]))
+        delegator_pubkey = delegator_pk.public_key
+    else:
+        print(request.form["delegator_pubkey_hex"])
+        delegator_pk = None
+        delegator_pubkey = PublicKey(unhexlify(request.form["delegator_pubkey_hex"]))
     kinds_list = request.form.get("kinds")
     kinds = [int(k) for k in request.form["kinds"].split(",")] if kinds_list else []
     valid_from = request.form["valid_from"]
@@ -89,13 +103,14 @@ def nip26_create_and_sign_delegation_token():
         delegatee_pk = PrivateKey()
 
     delegation = Delegation(
-        delegator_pubkey=delegator_pk.public_key.hex(),
+        delegator_pubkey=delegator_pubkey.hex(),
         delegatee_pubkey=delegatee_pk.public_key.hex(),
         event_kinds=kinds,
         valid_from=valid_from,
         valid_until=valid_until,
     )
-    delegator_pk.sign_delegation(delegation)
+    if delegator_pk:
+        delegator_pk.sign_delegation(delegation)
 
     if delegation.event_kinds:
         kinds_descriptions = [f"{k}: {EventKind.ALL_KINDS[k]}" for k in delegation.event_kinds]
@@ -104,8 +119,8 @@ def nip26_create_and_sign_delegation_token():
 
     return dict(
         delegation_token=delegation.delegation_token,
-        delegator_npub=delegator_pk.public_key.bech32(),
-        delegator_hex=delegator_pk.public_key.hex(),
+        delegator_npub=delegator_pubkey.bech32(),
+        delegator_hex=delegator_pubkey.hex(),
         delegatee_npub=delegatee_pk.public_key.bech32(),
         delegatee_pubkey_hex=delegatee_pk.public_key.hex(),
         delegatee_nsec=delegatee_pk.bech32(),
@@ -172,7 +187,14 @@ def get_event_kinds():
 @app.route("/event/sign", methods=['POST'])
 def event_sign():
     event = None
-    pk = PrivateKey(unhexlify(request.form["pk_hex"]))
+
+    if "pk_hex" in request.form:
+        pk = PrivateKey(unhexlify(request.form["pk_hex"]))
+        pubkey = pk.public_key
+    else:
+        pk = None
+        pubkey = PublicKey(unhexlify(request.form["pubkey_hex"]))
+
     data_type = request.form["type"]
 
     if data_type == "raw_json":
@@ -199,9 +221,11 @@ def event_sign():
             delegation_tag = ast.literal_eval(request.form["delegation_tag"])
             tags=[delegation_tag]
         
-        event = Event(content=msg, kind=event_kind, tags=tags)
+        event = Event(public_key=pubkey.hex(), content=msg, kind=event_kind, tags=tags)
+        event.extract_content_refs()
 
-    pk.sign_event(event)
+    if pk:
+        pk.sign_event(event)
 
     return dict(
         signature=event.signature,
@@ -217,6 +241,7 @@ def event_publish():
     relays = request.form["relays"].split()
 
     try:
+        print(event_json)
         event = Event.from_json(event_json)
 
         relay_manager = RelayManager()

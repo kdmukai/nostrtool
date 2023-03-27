@@ -4,6 +4,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>NostrTool</title>
         <script src="/static/nostr_tool.js"></script>
+        <script src="/static/qrcode.min.js"></script>
+        <script src="/static/html5-qrcode.min.js"></script>
         <link rel="stylesheet" href="/static/styles.css">
 
         <!-- Google Fonts -->
@@ -34,22 +36,29 @@
                             <input onclick="createNewPK('bip39_24');" type="button" value="From random BIP-39 24-word mnemonic" ><br/>
                         </div>
                         <div class="float_options">
-                            <input onclick="prepareLoadPK('existing');" type="button" value="Load an existing key" ><br/>
-                            <input onclick="prepareLoadPK('bip39');" type="button" value="Load an existing key from BIP-39 mnemonic" ><br/>
+                            <input onclick="prepareLoadPK('pubkey');" type="button" value="Load a pubkey from npub/hex" ><br/>
+                            <input onclick="prepareLoadPK('existing');" type="button" value="Load a privkey from nsec/hex" ><br/>
+                            <input onclick="prepareLoadPK('bip39');" type="button" value="Load a privkey from BIP-39 mnemonic" ><br/>
                         </div>
                         <div class="clear_both"></div>
                     </div>
 
+                    <div id="input_pubkey_container" class="start_hidden">
+                        Paste pubkey hex or npub:<br/>
+                        <input id="input_pubkey" type="text"><input onclick="scanQRtoElement('Scan Pubkey npub/hex QR', 'input_pubkey');" type="button" value="QR" ><br/>
+                        <input onclick="loadKey('pubkey', 'input_pubkey')" type="button" value="Load">
+                    </div>
+
                     <div id="input_existing_container" class="start_hidden">
                         Paste privkey hex or nsec:<br/>
-                        <input id="input_existing" type="text"><br/>
-                        <input onclick="loadPK('existing', 'input_existing')" type="button" value="Load">
+                        <input id="input_existing" type="text"><input onclick="scanQRtoElement('Scan Privkey nsec/hex QR', 'input_existing');" type="button" value="QR" ><br/>
+                        <input onclick="loadKey('existing', 'input_existing')" type="button" value="Load">
                     </div>
 
                     <div id="input_mnemonic_container" class="start_hidden">
                         Paste 12-word or 24-word mnemonic (separated w/spaces or commas):<br/>
                         <textarea id="input_mnemonic" cols="80" rows="3"></textarea><br/>
-                        <input onclick="loadPK('bip39', 'input_mnemonic')" type="button" value="Load">
+                        <input onclick="loadKey('bip39', 'input_mnemonic')" type="button" value="Load">
                     </div>
                 </div>
 
@@ -62,19 +71,19 @@
                     </div>
 
                     Nostr private key (nsec):<br/>
-                    <input id="pk_nsec" class="danger" type="text" readonly><br/>
+                    <input id="pk_nsec" class="danger" type="text" readonly>&nbsp;<input type="button" onclick="showQRFromElement('pk_nsec', 'privkey (nsec)', 256)" class="qr_btn" value="QR"><br/>
                     <br/>
 
                     Nostr private key (hex):<br/>
-                    <input id="pk_hex" class="danger" type="text" readonly><br/>
+                    <input id="pk_hex" class="danger" type="text" readonly>&nbsp;<input type="button" onclick="showQRFromElement('pk_hex', 'privkey (hex)', 256)" class="qr_btn" value="QR"><br/>
                     <br/>
 
                     Nostr public key (npub):<br/>
-                    <input id="pubkey_npub" type="text" readonly><br/>
+                    <input id="pubkey_npub" type="text" readonly>&nbsp;<input type="button" onclick="showQRFromElement('pubkey_npub', 'pubkey (npub)', 256)" class="qr_btn" value="QR"></span><br/>
                     <br/>
 
                     Nostr public key (hex):<br/>
-                    <input id="pubkey_hex" type="text" readonly>
+                    <input id="pubkey_hex" type="text" readonly>&nbsp;<input type="button" onclick="showQRFromElement('pubkey_hex', 'pubkey (hex)', 256)" class="qr_btn" value="QR">
                     <br/>
                 </div>
             
@@ -126,6 +135,8 @@
                     </div>
 
                     <input onclick="nip26CreateAndSign();" type="button" value="Sign delegation" >
+                    <input onclick="nip26ExportToQRSigner();" type="button" value="Sign delegation in QR signer" >
+                    <input onclick="nip26ReadSignedDelegationQR();" type="button" value="Read signed delegation QR" >
                 </div>
 
 
@@ -183,7 +194,7 @@
 
                 <div class="subsection">
                     Delegation tag:<br/>
-                    <textarea id="nip26_tag" cols="80" rows="6" readonly></textarea>
+                    <textarea id="nip26_tag" cols="80" rows="6" readonly></textarea>&nbsp;<input type="button" onclick="showQRFromElement('nip26_tag', 'delegation tag', 512)" class="qr_btn" value="QR"><br/>
                     <div class="note">(this tag gets added to any event that the delegatee signs on behalf of the delegator. It can be saved and reused until the delegation expires)</div>
                 </div>
 
@@ -213,6 +224,8 @@
                     <textarea id="event_text_note" cols="60" rows="5"></textarea><br/>
                     <br/>
                     <input onclick="eventSign('text_note', 'event_text_note');" type="button" value="Sign event" >
+                    <input onclick="eventSignViaQRSigner('text_note_qr', 'event_text_note');" type="button" value="Sign event in QR signer" >
+                    <input onclick="eventReadSignedEventQR();" type="button" value="Read signed event QR" >
                 </div>
 
                 <div id="event_raw_json_container" class="start_hidden">
@@ -307,6 +320,12 @@ nostr.zebedee.cloud</textarea>
         <div class="popup_message" id="popup_message">
             <div id="popup_message_content"></div>
             <input id="popup_message_ok" class="popup_message_ok" type="button" value="close">
+        </div>
+
+        <div class="popup_qrcode" id="popup_qrcode">
+            <div id="popup_qrcode_title" class="popup_qrcode_title"></div>
+            <div id="popup_qrcode_container" class="popup_qrcode_container"></div>
+            <input id="popup_qrcode_ok" class="popup_message_ok" type="button" value="close">
         </div>
 
 

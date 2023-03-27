@@ -66,6 +66,8 @@ function prepareLoadPK(keytype) {
         target = document.getElementById("input_existing_container");
     } else if (keytype == "bip39") {
         target = document.getElementById("input_mnemonic_container");
+    } else if (keytype == "pubkey") {
+        target = document.getElementById("input_pubkey_container");
     }
 
     // Close an open option, if any
@@ -83,12 +85,12 @@ function prepareLoadPK(keytype) {
 
 
 
-function loadPK(keytype, targetId) {
+function loadKey(keytype, targetId) {
     let target = document.getElementById(targetId);
 
     let data = new FormData();
     data.append("type", keytype);
-    data.append("privkey_data", target.value)
+    data.append("key_data", target.value)
 
     fetch(
         "/key/load",
@@ -136,6 +138,11 @@ function nip26CreateAndSign() {
         return;
     }
 
+    createDelegationToken(delegator_pk_hex, () => {});
+}
+
+
+function createDelegationToken(delegator_pk_hex, successCallback) {
     let delegatee_pk = document.getElementById("nip26_create_delegatee_pk").value;
     let kinds = [];
     for (let kind of document.getElementsByName('nip26_create_kinds')) {
@@ -148,7 +155,11 @@ function nip26CreateAndSign() {
     let valid_until = Math.floor(new Date(document.getElementById("nip26_create_valid_until").value).valueOf() / 1000);
 
     let data = new FormData();
-    data.append("delegator_pk_hex", delegator_pk_hex);
+    if (delegator_pk_hex != null) {
+        data.append("delegator_pk_hex", delegator_pk_hex);
+    } else {
+        data.append("delegator_pubkey_hex", document.getElementById("pubkey_hex").value)
+    }
     data.append("delegatee_pk", delegatee_pk);
     data.append("kinds", kinds);
     data.append("valid_from", valid_from);
@@ -175,7 +186,31 @@ function nip26CreateAndSign() {
         document.getElementById("nip26_valid_until").value = new Date(result.valid_until * 1000).toISOString();
         document.getElementById("nip26_tag").value = result.delegation_tag;
         document.getElementById("nip26_signature").value = result.signature;
+
+        successCallback();
     })
+}
+
+
+function nip26ExportToQRSigner() {
+    createDelegationToken(null, () => {
+        let delegation_token = document.getElementById("nip26_token").value;
+        showQR(delegation_token, "NIP-26 Delegation Token", 256);
+    });
+}
+
+
+function nip26ReadSignedDelegationQR() {
+    let targetElement = "nip26_signature";
+    parts = 0;
+    scanQR("Scan signed delegation QR", (decodedText, decodedResult) => {
+        console.log(`!! Code matched = ${decodedText}`, decodedResult);
+        document.getElementById(targetElement).value = decodedText;
+        hidePopupQR();
+
+        let delegation_tag_el = document.getElementById("nip26_tag");
+        delegation_tag_el.value = delegation_tag_el.value.replace(", None]", `, '${decodedText}']`);
+    });
 }
 
 
@@ -235,24 +270,30 @@ function showEvent(container_id) {
 
 
 
-function eventSign(type, dataSource) {
+function eventSign(event_type, dataSource, successCallback) {
     let data = new FormData();
-    let pk_hex = null;
+    let pk_hex = "";
+    let pubkey_hex = "";
 
-    data.append("type", type);
+    data.append("type", event_type);
 
-    if (type.includes("metadata") || type.includes("contacts")) {
+    if (event_type.includes("metadata") || event_type.includes("contacts")) {
+        // These inputs are raw json
         data.append("event_data", JSON.stringify(JSON.parse(document.getElementById(dataSource).value)));
     } else {
         data.append("event_data", document.getElementById(dataSource).value);
     }
 
-    if (type.includes("nip26")) {
+    if (event_type.includes("nip26")) {
         // Need to pull the delegatee's PK and the delegation tag
         pk_hex = document.getElementById("nip26_delegatee_privkey_hex").value;
         if (pk_hex == "") {
-            showPopupMessage("No delegatee private key!<p>Return to the NIP-26 Delegation section.</p>");
-            return;
+            if (event_type.includes("qr")) {
+                pubkey_hex = document.getElementById("nip26_delegatee_pubkey_hex").value;
+            } else {
+                showPopupMessage("No delegatee private key!<p>Return to the NIP-26 Delegation section.</p>");
+                return;
+            }
         }
 
         let delegation_tag = document.getElementById("nip26_tag").value;
@@ -266,12 +307,21 @@ function eventSign(type, dataSource) {
         pk_hex = document.getElementById("pk_hex").value;
 
         if (pk_hex == "") {
-            showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
-            return;
-        }    
+            if (event_type.includes("qr")) {
+                pubkey_hex = document.getElementById("pubkey_hex").value;
+            } else {
+                showPopupMessage("No private key!<p>Generate or load one at the top.</p>");
+                return;
+            }
+        }
     }
 
-    data.append("pk_hex", pk_hex);
+    if (pk_hex != "") {
+        data.append("pk_hex", pk_hex);
+    }
+    if (pubkey_hex != "") {
+        data.append("pubkey_hex", pubkey_hex)
+    }
 
     fetch(
         "/event/sign",
@@ -285,9 +335,32 @@ function eventSign(type, dataSource) {
         document.getElementById("event_json").value = result.event_json;
         document.getElementById("event_note_id").value = result.note_id;
         document.getElementById("event_signature").value = result.signature;
+
+        successCallback();
     })
 }
 
+
+function eventSignViaQRSigner(event_type, dataSource) {
+    eventSign(event_type, dataSource, () => {
+        let data = document.getElementById("event_json").value;
+        console.log(data);
+        showQR(data, "Scan raw event json", 256);
+    });
+}
+
+
+function eventReadSignedEventQR() {
+    let targetElement = "event_signature";
+    scanQR("Scan signed event QR", (decodedText, decodedResult) => {
+        console.log(`!! Code matched = ${decodedText}`, decodedResult);
+        document.getElementById(targetElement).value = decodedText;
+        hidePopupQR();
+
+        let event_json_el = document.getElementById("event_json");
+        event_json_el.value = event_json_el.value.replace(`"sig": null`, `"sig": "${decodedText}"`);
+    });
+}
 
 
 function eventPublish() {
@@ -328,6 +401,81 @@ function eventPublish() {
     })
 }
 
+
+
+/************************* QR Codes *************************/
+function showQR(data, title, width) {
+    console.log(data);
+    document.getElementById("popup_qrcode").style.marginLeft = -1 * width/2 + "px";
+    var qrcode = new QRCode(document.getElementById("popup_qrcode_container"), {
+        text: data,
+        width: width,
+        height: width,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+    });
+
+    showPopupQR(title);
+}
+
+
+function showQRFromElement(elementId, title, width) {
+    let el = document.getElementById(elementId);
+    let data = el.value;
+    showQR(data, title, width);
+}
+
+
+
+let html5QrcodeScanner = null;
+function scanQR(title, onScanSuccessCallback) {
+    let width = 250;
+    document.getElementById("popup_qrcode").style.marginLeft = -1 * width/2 + "px";
+    // document.getElementById("popup_qrcode_container");
+    html5QrcodeScanner = new Html5QrcodeScanner(
+        "popup_qrcode_container",
+        { fps: 10, qrbox: {width: width, height: width} },
+        /* verbose= */ false);
+    html5QrcodeScanner.render(onScanSuccessCallback, onScanFailure);
+    
+    showPopupQR(title);
+}
+
+  
+function onScanFailure(error) {
+    // handle scan failure, usually better to ignore and keep scanning.
+    // for example:
+    console.warn(`Code scan error = ${error}`);
+}
+
+
+function showPopupQR(title) {
+    document.getElementById("popup_grayout").style.display = "block";
+    document.getElementById("popup_qrcode").style.display = "block";
+    document.getElementById("popup_qrcode_title").innerHTML = title;
+}
+
+
+function hidePopupQR() {
+    console.log("hidePopupQR()")
+    if (html5QrcodeScanner != null) {
+        html5QrcodeScanner.clear();
+    }
+    document.getElementById("popup_grayout").style.display = "none";
+    document.getElementById("popup_qrcode").style.display = "none";
+    document.getElementById("popup_qrcode_container").innerHTML = "";
+}
+
+
+function scanQRtoElement(title, targetElement) {
+    scanQR(title, (decodedText, decodedResult) => {
+        console.log(`!! Code matched = ${decodedText}`, decodedResult);
+        document.getElementById(targetElement).value = decodedText;
+        hidePopupQR();
+    });
+
+}
 
 
 /************************* Helper utils *************************/
@@ -420,6 +568,7 @@ function hidePopupMessage() {
     document.getElementById("popup_grayout").style.display = "none";
     document.getElementById("popup_message").style.display = "none";
     document.getElementById("popup_message_content").innerHTML = "";
+    document.getElementById("qrcode_container").innerHTML = "";
 }
 
 
@@ -433,11 +582,20 @@ function slideBtnClick(id) {
 
 /************************* Initialization *************************/
 document.addEventListener("DOMContentLoaded", function(){
-    slideBtnClick("header_relays");
-    slideBtnClick("header_tips");
+    console.log(document.getElementById("header_relays"));
+    if (document.getElementById("header_relays") != null) {
+        slideBtnClick("header_relays");
+    }
+    if (document.getElementById("header_tips") != null) {
+        slideBtnClick("header_tips");
+    }
 
     document.getElementById("popup_message_ok").addEventListener('click', () => {
         hidePopupMessage();
+    });
+
+    document.getElementById("popup_qrcode_ok").addEventListener('click', () => {
+        hidePopupQR();
     });
 });
 
